@@ -4,7 +4,7 @@ MAINTAINER Thanasis Karampatsis <tkarabatsis@athenarc.gr>
 ENV LANG=C.UTF-8
 
 # Setting up timezone
-ENV TZ=Europe/Athens
+ENV TZ=Etc/GMT
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt update
@@ -14,10 +14,10 @@ RUN apt install -y --no-install-recommends python2
 RUN ln -s /usr/bin/python2 /usr/bin/python
 
 # Installing Exareme requirements
-RUN apt install -y openjdk-8-jdk curl jq
+RUN apt install -y openjdk-8-jdk curl jq iputils-ping
 
 # Installing pip
-RUN curl -O https://raw.githubusercontent.com/pypa/get-pip/master/get-pip.py
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
 RUN python get-pip.py
 RUN apt-get install -y python-dev  \
      build-essential libssl-dev libffi-dev \
@@ -34,6 +34,7 @@ RUN pip install pathlib
 RUN pip install tqdm
 RUN pip install colour
 RUN pip install tornado
+RUN pip install statsmodels==0.10.2
 
 # Installing R
 RUN apt install -y  software-properties-common
@@ -43,6 +44,8 @@ RUN apt update
 RUN apt install -y r-base
 RUN Rscript -e 'install.packages("randomForest", repos="https://cloud.r-project.org")'
 
+RUN Rscript -e 'install.packages("caret")'
+RUN Rscript -e 'install.packages("e1071")'
 RUN pip install rpy2==2.8.6
 
 # Add Madis Server

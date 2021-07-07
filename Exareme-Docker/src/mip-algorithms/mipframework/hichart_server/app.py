@@ -7,6 +7,8 @@ from PEARSON_CORRELATION import Pearson
 from LOGISTIC_REGRESSION import LogisticRegression
 from CALIBRATION_BELT import CalibrationBelt
 from KAPLAN_MEIER import KaplanMeier
+from ANOVA_ONEWAY import Anova
+from NAIVE_BAYES import NaiveBayes
 
 app = Flask(__name__)
 
@@ -28,12 +30,18 @@ charts_info = {
         "title": "Logistic Regression Confusion Matrix",
         "url": "logistic_confmat",
     },
-    "logistic_roc": {"title": "Logistic Regression ROC", "url": "logistic_roc",},
+    "logistic_roc": {"title": "Logistic Regression ROC", "url": "logistic_roc"},
     "calibration_belt": {"title": "Calibration Belt", "url": "calibration_belt"},
     "kaplan_meier_survival": {
         "title": "Kaplan-Meier Survival Curves",
         "url": "kaplan_meier_survival",
     },
+    "anova_errorbars": {"title": "Anova Mean Plot", "url": "anova_errorbars"},
+    "naive_bayes_confusion_matrix": {
+        "title": "NaiveBayes CM",
+        "url": "naive_bayes_confusion_matrix",
+    },
+    "naive_bayes_roc": {"title": "NaiveBayes ROC", "url": "naive_bayes_roc",},
 }
 
 
@@ -42,6 +50,27 @@ charts_info = {
 def home():
     return render_template(
         "home.html", title="Exareme Highcharts", charts_info=charts_info
+    )
+
+
+@app.route("/anova_errorbars")
+def anova_errorbars():
+    anova_args = [
+        "-y",
+        "lefthippocampus",
+        "-x",
+        "alzheimerbroadcategory",
+        "-pathology",
+        "dementia",
+        "-dataset",
+        "adni",
+        "-filter",
+        "",
+    ]
+    result = get_algorithm_result(Anova, anova_args)
+    result = result["result"][3]["data"]
+    return render_template(
+        "highchart_layout.html", title="Anova Mean Plot", data=result
     )
 
 
@@ -289,6 +318,42 @@ def kaplan_meier_survival():
     result = get_algorithm_result(KaplanMeier, args)
     result = result["result"][1]["data"]
     return render_template("highchart_layout.html", title="Kaplan Meier", data=result,)
+
+
+nb_args = [
+    "-x",
+    # "lefthippocampus,righthippocampus,leftaccumbensarea",
+    # "gender,alzheimerbroadcategory,agegroup",
+    "lefthippocampus,righthippocampus,leftaccumbensarea,apoe4,alzheimerbroadcategory",
+    "-y",
+    "agegroup",
+    "-alpha",
+    "1",
+    "-k",
+    "10",
+    "-pathology",
+    "dementia",
+    "-dataset",
+    "adni, ppmi",
+    "-filter",
+    "",
+]
+
+
+@app.route("/naive_bayes_confusion_matrix")
+def naive_bayes_confusion_matrix():
+    result = get_algorithm_result(NaiveBayes, nb_args)
+    result = result["result"][4]["data"]
+    return render_template(
+        "highchart_layout.html", title="NaiveBayes Confusion Martix", data=result
+    )
+
+
+@app.route("/naive_bayes_roc")
+def naive_bayes_roc():
+    result = get_algorithm_result(NaiveBayes, nb_args)
+    result = result["result"][5]["data"]
+    return render_template("highchart_layout.html", title="NaiveBayes ROC", data=result)
 
 
 if __name__ == "__main__":
